@@ -29,10 +29,24 @@ const Page = () => {
     const onSubmit = async () => {
         setLoading(true);
         try {
-            toast.success("Đăng nhập thành công");
-            router.push("/dashboard");
+            const res = await fetch("http://localhost:3001/api/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
+    
+            const result = await res.json();
+    
+            if (!res.ok) {
+                toast.error(result.message || "Lỗi đăng nhập");
+            } else {
+                toast.success(result.message);
+                router.push("/dashboard");
+            }
         } catch (error) {
-            toast.error("Đăng nhập thất bại. Kiểm tra lại email và mật khẩu");
+            toast.error("Lỗi máy chủ");
         } finally {
             setLoading(false);
         }
