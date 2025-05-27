@@ -1,72 +1,87 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Button } from "@/app/components/ui/button"; 
 import toast from "react-hot-toast";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 
-const initialCustomers = [
-  { id: "KH001", name: "Nguyễn Văn A", phone: "0987654321", email: "a@gmail.com", address: "Hà Nội" },
-  { id: "KH002", name: "Trần Thị B", phone: "0976543210", email: "b@gmail.com", address: "Hồ Chí Minh" },
-  { id: "KH003", name: "Lê Văn C", phone: "0965432109", email: "c@gmail.com", address: "Đà Nẵng" },
-];
-
 const CustomersList = () => {
-  const [customers, setCustomers] = useState(initialCustomers);
+  const [customers, setCustomers] = useState([]);
   const [search, setSearch] = useState("");
   const [newCustomer, setNewCustomer] = useState({ name: "", phone: "", email: "", address: "" });
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [popUpOpen, setPopUpOpen] = useState(false);
   const [deleteCustomer, setDeleteCustomer] = useState(null);
   const [addCustomerPopUpOpen, setAddCustomerPopUpOpen] = useState(false);
-  
-  // Hàm tạo ID tự động tăng cho khách hàng
-  const getNextCustomerId = () => {
-    const lastCustomerId = customers[customers.length - 1]?.id;
-    if (lastCustomerId) {
-      const numberPart = parseInt(lastCustomerId.replace("KH", ""));
-      return `KH${(numberPart + 1).toString().padStart(3, "0")}`;
+
+  const API_URL = "http://localhost:8080/api/customers"; 
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+ 
+  const fetchCustomers = async () => {
+    try {
+      const { data } = await axios.get(API_URL);
+      setCustomers(data);
+    } catch (error) {
+      toast.error("Lấy danh sách khách hàng thất bại");
     }
-    return "KH001";
   };
 
-  // Tìm kiếm
+  
   const filteredCustomers = customers.filter(({ id, name, phone, email, address }) =>
     [id, name, phone, email, address].some(field =>
       field && field.toString().toLowerCase().includes(search.toLowerCase())
     )
   );
-  
-  // Hàm xử lý sửa khách hàng
+
   const handleEditCustomer = (customer) => {
     setEditingCustomer({ ...customer });
   };
 
-  const handleSaveEdit = () => {
-    setCustomers(customers.map(c => (c.id === editingCustomer.id ? editingCustomer : c)));
-    setEditingCustomer(null);
-    toast.success("Lưu thay đổi thành công");
+
+  const handleSaveEdit = async () => {
+    try {
+      await axios.put(`${API_URL}/${editingCustomer.id}`, editingCustomer);
+      toast.success("Lưu thay đổi thành công");
+      setEditingCustomer(null);
+      fetchCustomers();
+    } catch (error) {
+      toast.error("Cập nhật khách hàng thất bại");
+    }
   };
 
-  // Hàm xử lý thêm khách hàng
   const handleAddCustomer = () => {
     setAddCustomerPopUpOpen(true);
   };
 
-  const confirmAddCustomer = () => {
-    const newId = getNextCustomerId(); // Lấy ID khách hàng mới
-    setCustomers([...customers, { id: newId, ...newCustomer }]);
-    setNewCustomer({ name: "", phone: "", email: "", address: "" });
-    setAddCustomerPopUpOpen(false);
-    toast.success("Thêm khách hàng thành công");
+  
+  const confirmAddCustomer = async () => {
+    try {
+      await axios.post(API_URL, newCustomer);
+      toast.success("Thêm khách hàng thành công");
+      setNewCustomer({ name: "", phone: "", email: "", address: "" });
+      setAddCustomerPopUpOpen(false);
+      fetchCustomers();
+    } catch (error) {
+      toast.error("Thêm khách hàng thất bại");
+    }
   };
 
-  // Hàm xử lý xóa khách hàng
-  const handleDeleteCustomer = () => {
-    setCustomers(customers.filter(c => c.id !== deleteCustomer.id));
-    setDeleteCustomer(null);
-    setPopUpOpen(false);
-    toast.success("Xóa khách hàng thành công");
+ 
+  const handleDeleteCustomer = async () => {
+    try {
+      await axios.delete(`${API_URL}/${deleteCustomer.id}`);
+      toast.success("Xóa khách hàng thành công");
+      setDeleteCustomer(null);
+      setPopUpOpen(false);
+      fetchCustomers();
+    } catch (error) {
+      toast.error("Xóa khách hàng thất bại");
+    }
   };
 
   return (

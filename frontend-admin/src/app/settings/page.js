@@ -1,9 +1,10 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/sidebar/Sidebar';
 import { Button } from '@/app/components/ui/button';
-import { X } from 'lucide-react'; // Import biểu tượng X từ lucide-react
-import toast from 'react-hot-toast'; // Import toast
+import { X } from 'lucide-react';
+import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const SettingPage = () => {
   const [settings, setSettings] = useState({
@@ -12,25 +13,57 @@ const SettingPage = () => {
     hotelPhone: '',
     hotelEmail: '',
   });
-  const [popUpOpen, setPopUpOpen] = useState(false); // Trạng thái hiển thị pop-up
+  const [popUpOpen, setPopUpOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSave = () => {
-    // Logic lưu cài đặt
-    console.log('Settings saved:', settings);
-    toast.success('Cài đặt đã được lưu thành công!'); // Thông báo toast khi lưu
-    setPopUpOpen(false); // Đóng pop-up sau khi lưu
-  };
+  useEffect(() => {
+    const fetchSetting = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('http://localhost:8080/api/settings');
+        // đảm bảo các trường luôn là chuỗi (fallback '')
+        setSettings({
+          hotelName: response.data.hotelName || '',
+          hotelAddress: response.data.hotelAddress || '',
+          hotelPhone: response.data.hotelPhone || '',
+          hotelEmail: response.data.hotelEmail || '',
+        });
+      } catch (error) {
+        toast.error('Lấy cài đặt thất bại!');
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSetting();
+  }, []);
+
+  const handleSave = async () => {
+  try {
+    setLoading(true);
+    await axios.post('http://localhost:8080/api/settings', settings);
+    toast.success('Cài đặt đã được lưu thành công!');
+    setPopUpOpen(false);
+  } catch (error) {
+    toast.error('Lưu cài đặt thất bại!');
+    console.error(error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleCancel = () => {
-    // Logic hủy thay đổi
     setSettings({
       hotelName: '',
       hotelAddress: '',
       hotelPhone: '',
       hotelEmail: '',
     });
-    toast.error('Thay đổi đã bị hủy'); // Thông báo toast khi hủy
+    toast.error('Thay đổi đã bị hủy');
   };
+
+  if (loading) return <div>Đang tải dữ liệu...</div>;
 
   return (
     <div className="flex flex-row w-full h-screen bg-[#F4F7FE]">
@@ -45,7 +78,7 @@ const SettingPage = () => {
               type="text"
               id="hotelName"
               className="p-3 border border-[#062D76] rounded-md w-full mt-2 focus:outline-none focus:ring-2 focus:ring-[#062D76] transition"
-              value={settings.hotelName}
+              value={settings.hotelName || ''}
               onChange={(e) => setSettings({ ...settings, hotelName: e.target.value })}
               placeholder="Nhập tên khách sạn"
             />
@@ -57,7 +90,7 @@ const SettingPage = () => {
               type="text"
               id="hotelAddress"
               className="p-3 border border-[#062D76] rounded-md w-full mt-2 focus:outline-none focus:ring-2 focus:ring-[#062D76] transition"
-              value={settings.hotelAddress}
+              value={settings.hotelAddress || ''}
               onChange={(e) => setSettings({ ...settings, hotelAddress: e.target.value })}
               placeholder="Nhập địa chỉ"
             />
@@ -69,7 +102,7 @@ const SettingPage = () => {
               type="text"
               id="hotelPhone"
               className="p-3 border border-[#062D76] rounded-md w-full mt-2 focus:outline-none focus:ring-2 focus:ring-[#062D76] transition"
-              value={settings.hotelPhone}
+              value={settings.hotelPhone || ''}
               onChange={(e) => setSettings({ ...settings, hotelPhone: e.target.value })}
               placeholder="Nhập số điện thoại"
             />
@@ -81,7 +114,7 @@ const SettingPage = () => {
               type="email"
               id="hotelEmail"
               className="p-3 border border-[#062D76] rounded-md w-full mt-2 focus:outline-none focus:ring-2 focus:ring-[#062D76] transition"
-              value={settings.hotelEmail}
+              value={settings.hotelEmail || ''}
               onChange={(e) => setSettings({ ...settings, hotelEmail: e.target.value })}
               placeholder="Nhập email"
             />
@@ -89,17 +122,22 @@ const SettingPage = () => {
         </div>
 
         <div className="flex justify-end gap-6 mt-8">
-          <Button className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md flex items-center gap-2 transition-all duration-300" onClick={handleCancel}>
+          <Button
+            className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md flex items-center gap-2 transition-all duration-300"
+            onClick={handleCancel}
+          >
             <X className="w-5 h-5" />
             <span>Hủy</span>
           </Button>
-          <Button className="bg-[#062D76] hover:bg-[#1E3A8A] text-white py-2 px-4 rounded-md flex items-center gap-2 transition-all duration-300" onClick={() => setPopUpOpen(true)}>
+          <Button
+            className="bg-[#062D76] hover:bg-[#1E3A8A] text-white py-2 px-4 rounded-md flex items-center gap-2 transition-all duration-300"
+            onClick={() => setPopUpOpen(true)}
+          >
             <span>Lưu</span>
           </Button>
         </div>
       </div>
 
-      {/* Pop-up xác nhận lưu thay đổi */}
       {popUpOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="w-full h-full bg-black opacity-50 absolute"></div>
