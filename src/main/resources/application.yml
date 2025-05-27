@@ -5,8 +5,8 @@ server:
 spring:
   datasource:
     username: root
-    password: Chinh2504@
-    url: jdbc:mysql://localhost:3306/khachsan
+    password: mySQLuser@@5
+    url: jdbc:mysql://localhost:3306/HotelDB
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
