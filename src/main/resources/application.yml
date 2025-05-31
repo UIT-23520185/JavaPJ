@@ -6,7 +6,7 @@ spring:
   datasource:
     username: root
     password: mySQLuser@@5
-    url: jdbc:mysql://localhost:3306/HotelDB
+    url: jdbc:mysql://localhost:3306/new_schema
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
