@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Calendar } from "/src/components/ui/calendar"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "/src/components/ui/card"
@@ -14,6 +14,7 @@ import { Bed, Coffee, Wifi, Tv, Users, CalendarIcon, CheckCircle } from "lucide-
 import { Popover, PopoverContent, PopoverTrigger } from "/src/components/ui/popover"
 import { format } from "date-fns"
 import { cn } from "/src/lib/utils"
+import axios from "axios";
 
 export default function HotelBooking() {
   const [selectedRoom, setSelectedRoom] = useState("standard")
@@ -27,6 +28,8 @@ export default function HotelBooking() {
     specialRequests: "",
   })
   const [isBooked, setIsBooked] = useState(false)
+  const [checkInDateDisplay, setCheckInDateDisplay] = useState("");
+  const [checkOutDateDisplay, setCheckOutDateDisplay] = useState("");
 
   const rooms = {
     standard: {
@@ -77,22 +80,56 @@ export default function HotelBooking() {
     return rooms[selectedRoom].price * diffDays
   }
 
-  const handleBooking = (e) => {
-    e.preventDefault()
-    // In a real application, you would send this data to your backend
-    console.log({
-      room: rooms[selectedRoom].name,
-      checkIn: checkInDate,
-      checkOut: checkOutDate,
-      guests,
-      ...formData,
-    })
-    setIsBooked(true)
+  const handleBooking = async (e) => {
+    e.preventDefault();
+    try {
+      // Lấy id khách hàng từ localStorage
+      const userId = localStorage.getItem("userId");
+      // Gọi API lấy phòng trống
+      const res = await axios.get("http://localhost:8080/api/rooms/available", {
+        params: {
+          checkinDate: checkInDate ? format(new Date(checkInDate), "yyyy-MM-dd") : null,
+          checkoutDate: checkOutDate ? format(new Date(checkOutDate), "yyyy-MM-dd") : null
+        }
+      });
+      const availableRooms = res.data;
+      if (!availableRooms.length) {
+        alert("Không còn phòng trống cho lựa chọn này!");
+        return;
+      }
+      const bookingData = {
+        idCustomer: userId ? Number(userId) : null,
+        idRoom: availableRooms[0].id, // lấy id phòng đầu tiên còn trống
+        checkinDate: checkInDate ? format(new Date(checkInDate), "yyyy-MM-dd") : null,
+        checkoutDate: checkOutDate ? format(new Date(checkOutDate), "yyyy-MM-dd") : null,
+        deposit: 0
+      };
+      await axios.post("http://localhost:8080/api/bookings", bookingData);
+      setIsBooked(true);
+    } catch (error) {
+      // Log chi tiết lỗi từ backend (nếu có)
+      if (error.response) {
+        console.error("Booking error status:", error.response.status);
+        console.error("Booking error data:", error.response.data);
+        alert("Đặt phòng thất bại! " + (error.response.data?.message || "Vui lòng thử lại."));
+      } else {
+        console.error(error);
+        alert("Đặt phòng thất bại! Vui lòng thử lại.");
+      }
+    }
   }
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price)
   }
+
+  useEffect(() => {
+    setCheckInDateDisplay(checkInDate ? format(new Date(checkInDate), "dd/MM/yyyy") : "");
+  }, [checkInDate]);
+
+  useEffect(() => {
+    setCheckOutDateDisplay(checkOutDate ? format(new Date(checkOutDate), "dd/MM/yyyy") : "");
+  }, [checkOutDate]);
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -124,11 +161,11 @@ export default function HotelBooking() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Ngày nhận phòng</p>
-                    <p className="font-medium">{checkInDate ? format(checkInDate, "dd/MM/yyyy") : ""}</p>
+                    <p className="font-medium">{checkInDateDisplay}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Ngày trả phòng</p>
-                    <p className="font-medium">{checkOutDate ? format(checkOutDate, "dd/MM/yyyy") : ""}</p>
+                    <p className="font-medium">{checkOutDateDisplay}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Số khách</p>
@@ -360,11 +397,11 @@ export default function HotelBooking() {
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <p className="text-muted-foreground">Nhận phòng</p>
-                        <p className="font-medium">{checkInDate ? format(checkInDate, "dd/MM/yyyy") : "---"}</p>
+                        <p className="font-medium">{checkInDateDisplay}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Trả phòng</p>
-                        <p className="font-medium">{checkOutDate ? format(checkOutDate, "dd/MM/yyyy") : "---"}</p>
+                        <p className="font-medium">{checkOutDateDisplay}</p>
                       </div>
                     </div>
 

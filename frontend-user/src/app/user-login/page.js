@@ -16,13 +16,16 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { motion } from "framer-motion";
 import { LogIn } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import * as yup from "yup";
+import axios from "axios";
 
 const Page = () => {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   // Schema kiểm tra đầu vào
   const registerSchema = yup.object().shape({
@@ -88,14 +91,40 @@ const Page = () => {
 
   // Xử lý đăng nhập
   const onSubmitLogin = async (data) => {
+    setLoading(true);
     try {
-      router.push("/");
-      toast.success("Đăng nhập tài khoản thành công");
+      const response = await axios.post("http://localhost:8080/api/users/login", {
+        email: data.email,
+        password: data.password,
+      });
+
+      const result = response.data;
+
+      if (result.success) {
+        toast.success(result.message || "Đăng nhập thành công");
+        // Lưu id tài khoản vào localStorage
+        
+        localStorage.setItem("userId", result.id);
+        
+        router.push("/Homepage");
+      } else {
+        toast.error(result.message || "Đăng nhập thất bại");
+      }
     } catch (error) {
-      console.error(error);
-      toast.error("Có lỗi xảy ra");
+      toast.error("Có lỗi xảy ra, vui lòng thử lại");
+    } finally {
+      setLoading(false);
     }
   };
+  // const onSubmitLogin = async (data) => {
+  //   try {
+  //     router.push("/");
+  //     toast.success("Đăng nhập tài khoản thành công");
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error("Có lỗi xảy ra");
+  //   }
+  // };
 
   // Reset form khi chuyển tab
   useEffect(() => {

@@ -1,6 +1,6 @@
 'use client';  // Đảm bảo đây là client component
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import LeftSideBar from "../components/LeftSideBar";
 import { Button } from "/src/components/ui/button.jsx";
 import toast from "react-hot-toast";
@@ -15,6 +15,12 @@ const page = () => {
     address: "123 Đường ABC, Quận 1, TP. Hồ Chí Minh",
     joinDate: "01/01/2022",
   });
+  const [userId, setUserId] = useState("");
+
+  useEffect(() => {
+    const id = localStorage.getItem("userId");
+    setUserId(id || "");
+  }, []);
 
   // Hàm chỉnh sửa thông tin
   const handleEditCustomer = () => {
@@ -39,8 +45,12 @@ const page = () => {
         {/* Hiển thị thông tin người dùng */}
         <div className="max-w-lg mx-auto p-6 bg-white border-2 border-blue-800 rounded-lg shadow-md">
           <h2 className="text-2xl font-semibold text-blue-800 mb-4">Thông Tin Cơ Bản</h2>
-          
           <div className="space-y-4">
+            <div>
+              <p className="font-medium text-lg">ID Khách hàng:</p>
+              <p className="text-gray-600">{userId}</p>
+            </div>
+
             <div>
               <p className="font-medium text-lg">Họ và Tên:</p>
               <p className="text-gray-600">{newUserData.name}</p>
