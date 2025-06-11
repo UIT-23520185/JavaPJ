@@ -19,13 +19,13 @@ public class UserController {
     public LoginResponse login(@RequestBody LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
         if (user == null) {
-            return new LoginResponse("Email không tồn tại", false);
+            return new LoginResponse("Email không tồn tại", false, user.getId());
         }
 
         if (!user.getPassword().equals(request.getPassword())) {
-            return new LoginResponse("Sai mật khẩu", false);
+            return new LoginResponse("Sai mật khẩu", false, user.getId());
         }
 
-        return new LoginResponse("Đăng nhập thành công", true);
+        return new LoginResponse("Đăng nhập thành công", true, user.getId());
     }
 }

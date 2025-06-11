@@ -11,6 +11,7 @@ public class User {
 
     private String email;
     private String password;
+    private boolean isAdmin;
 
     // Getters & Setters
     public Long getId() { return id; }
@@ -20,4 +21,6 @@ public class User {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public boolean getRole() { return isAdmin; }
 }

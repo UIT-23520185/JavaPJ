@@ -7,11 +7,18 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDate;
 
 @Service
 public class RoomService implements IRoomService {
 
     private final RoomRepository roomRepository;
+
+    public List<Room> getAvailableRooms(String checkinDate, String checkoutDate) {
+        LocalDate checkin = LocalDate.parse(checkinDate);
+        LocalDate checkout = LocalDate.parse(checkoutDate);
+        return roomRepository.findAvailableRooms(checkin, checkout);
+    }
 
     public RoomService(RoomRepository roomRepository) {
         this.roomRepository = roomRepository;
@@ -48,4 +55,6 @@ public class RoomService implements IRoomService {
         }
         roomRepository.deleteById(id);
     }
+
+
 }

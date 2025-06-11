@@ -24,6 +24,7 @@ public class RoomController {
         return ResponseEntity.ok(rooms);
     }
 
+
     @PostMapping
     public ResponseEntity<Room> addRoom(@RequestBody Room room) {
         Room savedRoom = roomService.addRoom(room);
@@ -40,5 +41,13 @@ public class RoomController {
     public ResponseEntity<?> deleteRoom(@PathVariable Long id) {
         roomService.deleteRoom(id);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<List<Room>> getAvailableRooms(
+            @RequestParam String checkinDate,
+            @RequestParam String checkoutDate) {
+        List<Room> availableRooms = roomService.getAvailableRooms(checkinDate, checkoutDate);
+        return ResponseEntity.ok(availableRooms);
     }
 }
