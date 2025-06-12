@@ -4,6 +4,7 @@ import LeftSideBar from "../components/LeftSideBar";
 import { Card, CardContent, CardHeader } from "/src/components/ui/card";
 import { User, CalendarCheck, CalendarX } from "lucide-react";
 import axios from "axios";
+import { format } from "date-fns";
 
 const BookedRoomsPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -79,11 +80,11 @@ const BookedRoomsPage = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <CalendarCheck className="w-4 h-4" />
-                    <span>Nhận phòng: {booking.checkinDate}</span>
+                    <span>Nhận phòng: {booking.checkinDate ? format(new Date(booking.checkinDate), "dd/MM/yyyy") : ""}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CalendarX className="w-4 h-4" />
-                    <span>Trả phòng: {booking.checkoutDate}</span>
+                    <span>Trả phòng: {booking.checkoutDate ? format(new Date(booking.checkoutDate), "dd/MM/yyyy") : ""}</span>
                   </div>
                 </CardContent>
               </Card>
