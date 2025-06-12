@@ -69,7 +69,7 @@ const BookedRoomsPage = () => {
                   />
                 </CardHeader>
                 <CardContent className="p-4 space-y-2">
-                  <h2 className="text-lg font-semibold">Phòng số: {booking.idRoom}</h2>
+                  <h2 className="text-lg font-semibold">ID Phòng: {booking.idRoom}</h2>
                   <h2 className="text-lg font-semibold">Phòng {booking.roomName}</h2>
                   <div className="flex items-center gap-2">
                     {/* <User className="w-4 h-4" />
