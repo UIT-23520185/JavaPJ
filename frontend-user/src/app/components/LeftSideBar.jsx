@@ -29,8 +29,8 @@ const LeftSideBar = () => {
   const navItems = [
     { path: "/user-profile", label: "Thông tin cá nhân", icon: <User className="mr-4" /> },
     { path: "/booked-rooms", label: "Phòng đã đặt", icon: <BedDouble className="mr-4" /> },
-    { path: "/add-service", label: "Dịch vụ", icon: <HandPlatter className="mr-4" /> },
-    { path: "/payment", label: "Thanh toán", icon: <CreditCard className="mr-4" /> },
+    // { path: "/add-service", label: "Dịch vụ", icon: <HandPlatter className="mr-4" /> },
+    // { path: "/payment", label: "Thanh toán", icon: <CreditCard className="mr-4" /> },
     { path: "/change-password", label: "Đổi mật khẩu", icon: <LockKeyhole className="mr-4" /> },
     { path: "/notification", label: "Thông báo", icon: <Bell className="mr-4" /> },
   ];
