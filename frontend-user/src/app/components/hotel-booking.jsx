@@ -94,7 +94,7 @@ export default function HotelBooking() {
       });
       const availableRooms = res.data;
       if (!availableRooms.length) {
-        alert("Không còn phòng trống cho lựa chọn này!");
+        alert("Không còn phòng trống cho lựa chọn này!\n Vui lòng chon chọn ngày khác.");
         return;
       }
       const bookingData = {
