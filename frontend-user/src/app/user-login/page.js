@@ -26,6 +26,7 @@ import axios from "axios";
 const Page = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [tabValue, setTabValue] = useState("login");
 
   // Schema kiểm tra đầu vào
   const registerSchema = yup.object().shape({
@@ -81,8 +82,28 @@ const Page = () => {
   // Xử lý đăng ký
   const onSubmitRegister = async (data) => {
     try {
-      router.push("/");
+      // Gọi API tạo user mới
+      const userRes = await axios.post("http://localhost:8080/api/users/register", {
+        email: data.email,
+        password: data.password
+      });
+      const userResult = userRes.data;
+      if (!userResult.success) {
+        if (userResult.message && userResult.message.includes("Email đã tồn tại")) {
+          toast.error("Email đã tồn tại. Vui lòng dùng email khác.");
+        } else {
+          toast.error(userResult.message || "Đăng ký thất bại");
+        }
+        return;
+      }
+      // Gọi API tạo khách hàng mới
+      await axios.post("http://localhost:8080/api/customers", {
+        email: data.email,
+        name: data.username
+      });
       toast.success("Đăng ký tài khoản thành công");
+      // Chuyển sang tab đăng nhập sau khi đăng ký thành công
+      setTabValue("login");
     } catch (error) {
       console.error(error);
       toast.error("Có lỗi xảy ra");
@@ -150,7 +171,7 @@ const Page = () => {
           </CardHeader>
 
           <CardContent>
-            <Tabs defaultValue="login" className="w-full">
+            <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-gray-900 text-white">
                 <TabsTrigger value="login" className="text-white">
                   Đăng nhập
