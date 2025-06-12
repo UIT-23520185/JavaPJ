@@ -6,7 +6,7 @@ import Page from "./user-login/page";
 export default function Home() {
   return (
    <main>
-    <Page />
+    <HomePage />
    </main>
   );
 }
