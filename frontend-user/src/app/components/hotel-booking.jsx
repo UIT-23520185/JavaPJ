@@ -30,6 +30,8 @@ export default function HotelBooking() {
   const [isBooked, setIsBooked] = useState(false)
   const [checkInDateDisplay, setCheckInDateDisplay] = useState("");
   const [checkOutDateDisplay, setCheckOutDateDisplay] = useState("");
+  const [availableRooms, setAvailableRooms] = useState([]);
+  const [selectedAvailableRoomId, setSelectedAvailableRoomId] = useState("");
 
   const rooms = {
     standard: {
@@ -80,26 +82,44 @@ export default function HotelBooking() {
     return rooms[selectedRoom].price * diffDays
   }
 
+  // Lấy phòng trống khi chọn ngày hoặc loại phòng
+  useEffect(() => {
+    async function fetchAvailableRooms() {
+      if (!checkInDate || !checkOutDate) {
+        setAvailableRooms([]);
+        setSelectedAvailableRoomId("");
+        return;
+      }
+      try {
+        const res = await axios.get("http://localhost:8080/api/rooms/available", {
+          params: {
+            checkinDate: format(new Date(checkInDate), "yyyy-MM-dd"),
+            checkoutDate: format(new Date(checkOutDate), "yyyy-MM-dd"),
+            type: selectedRoom
+          }
+        });
+        setAvailableRooms(res.data);
+        setSelectedAvailableRoomId(res.data[0]?.id ? String(res.data[0].id) : "");
+      } catch {
+        setAvailableRooms([]);
+        setSelectedAvailableRoomId("");
+      }
+    }
+    fetchAvailableRooms();
+  }, [checkInDate, checkOutDate, selectedRoom]);
+
   const handleBooking = async (e) => {
     e.preventDefault();
     try {
       // Lấy id khách hàng từ localStorage
       const userId = localStorage.getItem("userId");
-      // Gọi API lấy phòng trống
-      const res = await axios.get("http://localhost:8080/api/rooms/available", {
-        params: {
-          checkinDate: checkInDate ? format(new Date(checkInDate), "yyyy-MM-dd") : null,
-          checkoutDate: checkOutDate ? format(new Date(checkOutDate), "yyyy-MM-dd") : null
-        }
-      });
-      const availableRooms = res.data;
-      if (!availableRooms.length) {
-        alert("Không còn phòng trống cho lựa chọn này!\n Vui lòng chon chọn ngày khác.");
+      if (!selectedAvailableRoomId) {
+        alert("Vui lòng chọn phòng còn trống!");
         return;
       }
       const bookingData = {
         idCustomer: userId ? Number(userId) : null,
-        idRoom: availableRooms[0].id, // lấy id phòng đầu tiên còn trống
+        idRoom: Number(selectedAvailableRoomId),
         checkinDate: checkInDate ? format(new Date(checkInDate), "yyyy-MM-dd") : null,
         checkoutDate: checkOutDate ? format(new Date(checkOutDate), "yyyy-MM-dd") : null,
         deposit: 0
@@ -310,6 +330,34 @@ export default function HotelBooking() {
                         <SelectItem value="2">2 người</SelectItem>
                         <SelectItem value="3">3 người</SelectItem>
                         <SelectItem value="4">4 người</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="room-select">Chọn phòng</Label>
+                    <Select
+                      value={selectedAvailableRoomId}
+                      onValueChange={(val) => setSelectedAvailableRoomId(val)}
+                    >
+                      <SelectTrigger id="room-select">
+                        <SelectValue placeholder="Chọn phòng" />
+                      </SelectTrigger>
+                      <SelectContent
+                        onClick={() => {
+                          if (!availableRooms.length) {
+                            alert("Hiện tại khách sạn đã hết phòng cho lựa chọn này!");
+                          }
+                        }}
+                      >
+                        {availableRooms.length > 0 ? (
+                          availableRooms.map((room) => (
+                            <SelectItem key={room.id} value={String(room.id)}>
+                              {room.name || `Phòng ${room.tenPhong}`}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <div className="px-4 py-2 text-red-500">Không còn phòng trống</div>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
