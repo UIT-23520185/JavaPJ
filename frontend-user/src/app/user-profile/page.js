@@ -5,12 +5,13 @@ import LeftSideBar from "../components/LeftSideBar";
 import { Button } from "/src/components/ui/button.jsx";
 import toast from "react-hot-toast";
 import { Pencil } from "lucide-react";
+import axios from "axios";
 
 const page = () => {
   const [editingCustomer, setEditingCustomer] = useState(false);
   const [newUserData, setNewUserData] = useState({
     name: "Nguyễn Văn A",
-    email: "nguyenvana@example.com",
+    email: "",
     phone: "+84 123 456 789",
     address: "123 Đường ABC, Quận 1, TP. Hồ Chí Minh",
     joinDate: "01/01/2022",
@@ -20,6 +21,33 @@ const page = () => {
   useEffect(() => {
     const id = localStorage.getItem("userId");
     setUserId(id || "");
+    if (!id) return;
+    axios.get(`http://localhost:8080/api/users/${id}`)
+      .then(res => {
+        if (res.data && res.data.email) {
+          const email = res.data.email;
+          setNewUserData(prev => ({ ...prev, email }));
+          if (email) {
+            axios.get(`http://localhost:8080/api/customers`)
+              .then(cusRes => {
+                if (Array.isArray(cusRes.data)) {
+                  const customer = cusRes.data.find(c => c.email === email);
+                  if (customer) {
+                    setNewUserData(prev => ({
+                      ...prev,
+                      name: customer.name || prev.name,
+                      phone: customer.phone || prev.phone,
+                      address: customer.address || prev.address,
+                      joinDate: customer.joinDate || prev.joinDate,
+                      email: email
+                    }));
+                  }
+                }
+              });
+          }
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Hàm chỉnh sửa thông tin
@@ -28,10 +56,29 @@ const page = () => {
   };
 
   // Lưu thay đổi thông tin
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     setEditingCustomer(false);
-    // Đây là nơi bạn sẽ cập nhật thông tin người dùng vào database hoặc state
-    toast.success("Thông tin đã được lưu thành công.");
+    try {
+      // Lấy toàn bộ customers và tìm theo email
+      const cusRes = await axios.get("http://localhost:8080/api/customers");
+      if (Array.isArray(cusRes.data)) {
+        const customer = cusRes.data.find(c => c.email === newUserData.email);
+        if (customer) {
+          await axios.put(`http://localhost:8080/api/customers/${customer.id}`, {
+            ...customer,
+            name: newUserData.name,
+            phone: newUserData.phone,
+            address: newUserData.address,
+            joinDate: newUserData.joinDate
+          });
+          toast.success("Thông tin đã được lưu thành công.");
+        } else {
+          toast.error("Không tìm thấy khách hàng theo email.");
+        }
+      }
+    } catch (e) {
+      toast.error("Cập nhật thông tin thất bại.");
+    }
   };
 
   return (
@@ -95,7 +142,7 @@ const page = () => {
               <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative z-10">
                 <h2 className="text-lg font-bold mb-4">Chỉnh sửa thông tin cá nhân</h2>
                 <div className="grid grid-cols-1 gap-4">
-                  {["name", "phone", "email", "address"].map((field) => (
+                  {["name", "phone", "address"].map((field) => (
                     <input
                       key={field}
                       type={field === "email" ? "email" : "text"}
