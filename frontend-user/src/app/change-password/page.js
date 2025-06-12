@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import LeftSideBar from "../components/LeftSideBar";
+import axios from "axios";
 import { toast } from "react-hot-toast";
 import { Button } from "../components/ui/button";
 
@@ -9,24 +10,43 @@ const ChangePasswordPage = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [userId, setUserId] = useState("");
 
-  const handleChangePassword = () => {
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const id = localStorage.getItem("userId");
+      setUserId(id || "");
+    }
+  }, []);
+
+  const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.error("Vui lòng nhập đầy đủ thông tin");
+      alert("Vui lòng nhập đầy đủ thông tin");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error("Mật khẩu mới và xác nhận không khớp");
+      alert("Mật khẩu mới và xác nhận không khớp");
       return;
     }
 
-    // TODO: Gửi dữ liệu đổi mật khẩu lên backend tại đây
-
-    toast.success("Đổi mật khẩu thành công!");
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+    try {
+      if (!userId) {
+        alert("Không tìm thấy thông tin người dùng");
+        return;
+      }
+      // Gửi request đổi mật khẩu
+      await axios.put(`http://localhost:8080/api/users/${userId}/change-password`, {
+        currentPassword,
+        newPassword
+      });
+      alert("Đổi mật khẩu thành công!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (e) {
+      alert("Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu hiện tại.");
+    }
   };
 
   return (
