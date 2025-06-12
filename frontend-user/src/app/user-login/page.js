@@ -90,9 +90,9 @@ const Page = () => {
       const userResult = userRes.data;
       if (!userResult.success) {
         if (userResult.message && userResult.message.includes("Email đã tồn tại")) {
-          toast.error("Email đã tồn tại. Vui lòng dùng email khác.");
+          alert("Email đã tồn tại. Vui lòng dùng email khác.");
         } else {
-          toast.error(userResult.message || "Đăng ký thất bại");
+          alert(userResult.message || "Đăng ký thất bại");
         }
         return;
       }
